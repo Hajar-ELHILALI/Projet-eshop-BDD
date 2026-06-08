@@ -1,0 +1,29 @@
+# Configuration TNS pour le projet Eshop
+# On utilise les noms de services Docker et le port interne 1521.
+
+BD-MASTER =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-master)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = XEPDB1)
+    )
+  )
+
+BD-SITE1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-site1)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = XEPDB1)
+    )
+  )
+
+BD-SITE2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-site2)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = XEPDB1)
+    )
+  )

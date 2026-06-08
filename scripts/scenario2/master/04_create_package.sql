@@ -1,0 +1,10 @@
+-- ============================================================
+-- SCENARIO 2 | MASTER -- Package anti-boucle (identique Scenario 1)
+-- ============================================================
+ALTER SESSION SET CONTAINER = XEPDB1;
+ALTER SESSION SET CURRENT_SCHEMA = eshop_admin;
+
+CREATE OR REPLACE PACKAGE pkg_synchro AS
+    is_replicating BOOLEAN := FALSE;
+END pkg_synchro;
+/

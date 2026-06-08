@@ -1,0 +1,14 @@
+# Dockerfile pour le Master
+FROM gvenzl/oracle-xe:21-slim-faststart 
+
+# Étiquette pour le prof
+LABEL role="master-database"
+
+# Créer un répertoire pour les logs 
+RUN mkdir -p /opt/oracle/logs 
+
+# Exposer les ports standards (1521 pour SQL, 5500 pour Enterprise Manager)
+EXPOSE 1521 5500
+
+# Note : Les variables d'environnement (Mots de passe, Users) et 
+# les scripts SQL sont injectés dynamiquement via le docker-compose.yml

@@ -1,0 +1,9 @@
+# Dockerfile pour la base de SECOURS (standby / backup)
+FROM gvenzl/oracle-xe:21-slim-faststart
+
+# Étiquette pour le prof
+LABEL role="backup-database"
+
+RUN mkdir -p /opt/oracle/logs
+
+EXPOSE 1521 5500

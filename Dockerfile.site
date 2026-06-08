@@ -1,0 +1,9 @@
+# Dockerfile pour les Sites distants (Site 1 et Site 2)
+FROM gvenzl/oracle-xe:21-slim-faststart 
+
+# Étiquette pour le prof
+LABEL role="site-database"
+
+RUN mkdir -p /opt/oracle/logs 
+
+EXPOSE 1521 5500

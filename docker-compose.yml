@@ -1,0 +1,126 @@
+services:
+  db-master:
+    build:
+      context: .
+      dockerfile: Dockerfile.master   # Utilise le Dockerfile spécifique au Master
+    container_name: eshop-master
+    hostname: db-master
+    environment:
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+      - APP_USER=${MASTER_USER}
+      - APP_USER_PASSWORD=${APP_USER_PASSWORD}
+      - TNS_ADMIN=${TNS_ADMIN}
+    ports:
+      - "${MASTER_PORT}:1521"
+    # Le Master (base globale) démarre EN PREMIER : il contient toutes les
+    # données. Les sites tirent ensuite leur fragment via CTAS (mode pull).
+    volumes:
+      - ./scripts/scenario1/master:/container-entrypoint-initdb.d
+      - ./tnsnames.ora:/opt/oracle/network/admin/tnsnames.ora
+      # Requêtes d'analyse Q5/Q6 (exécutées à la demande, PAS au démarrage)
+      - ./scripts/scenario1/global-queries:/queries:ro
+      - oradata_master:/opt/oracle/oradata
+    networks:
+      - eshop-net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  db-site1:
+    build:
+      context: .
+      dockerfile: Dockerfile.site     # Utilise le Dockerfile spécifique aux Sites
+    container_name: eshop-site1
+    hostname: db-site1
+    environment:
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+      - APP_USER=${SITE1_USER}
+      - APP_USER_PASSWORD=${APP_USER_PASSWORD}
+      - TNS_ADMIN=${TNS_ADMIN}
+    ports:
+      - "${SITE1_PORT}:1521"
+    # Le site tire son fragment depuis la base globale -> il démarre APRÈS.
+    depends_on:
+      db-master:
+        condition: service_healthy
+    volumes:
+      - ./scripts/scenario1/site1:/container-entrypoint-initdb.d
+      - ./tnsnames.ora:/opt/oracle/network/admin/tnsnames.ora
+      - oradata_site1:/opt/oracle/oradata
+    networks:
+      - eshop-net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  db-site2:
+    build:
+      context: .
+      dockerfile: Dockerfile.site     # Utilise le même Dockerfile.site que le site 1
+    container_name: eshop-site2
+    hostname: db-site2
+    environment:
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+      - APP_USER=${SITE2_USER}
+      - APP_USER_PASSWORD=${APP_USER_PASSWORD}
+      - TNS_ADMIN=${TNS_ADMIN}
+    ports:
+      - "${SITE2_PORT}:1521"
+    depends_on:
+      db-master:
+        condition: service_healthy
+    volumes:
+      - ./scripts/scenario1/site2:/container-entrypoint-initdb.d
+      - ./tnsnames.ora:/opt/oracle/network/admin/tnsnames.ora
+      - oradata_site2:/opt/oracle/oradata
+    networks:
+      - eshop-net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Base de SECOURS : copie complète du Master via vues matérialisées.
+  # Mode "pull" → ne démarre qu'une fois le Master prêt.
+  db-backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: eshop-backup
+    hostname: db-backup
+    environment:
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+      - APP_USER=${BACKUP_USER}
+      - APP_USER_PASSWORD=${APP_USER_PASSWORD}
+      - TNS_ADMIN=${TNS_ADMIN}
+    ports:
+      - "${BACKUP_PORT}:1521"
+    depends_on:
+      db-master:
+        condition: service_healthy
+    volumes:
+      - ./scripts/scenario1/backup:/container-entrypoint-initdb.d
+      - ./tnsnames.ora:/opt/oracle/network/admin/tnsnames.ora
+      - oradata_backup:/opt/oracle/oradata
+    networks:
+      - eshop-net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  eshop-net:
+    driver: bridge
+
+volumes:
+  oradata_master:
+  oradata_site1:
+  oradata_site2:
+  oradata_backup:
