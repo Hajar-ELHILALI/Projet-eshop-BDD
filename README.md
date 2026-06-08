@@ -103,11 +103,28 @@ cp .env.example .env     # puis ajustez les valeurs si besoin
 
 ### Lancement
 
+Les deux scénarios utilisent les **mêmes conteneurs et ports** → on ne peut en lancer **qu'un seul à la fois**. Chacun a son fichier Compose. Basculer de l'un à l'autre = faire `down -v` sur le scénario en cours d'abord.
+
+**Scénario 1** — fragmentation dérivée (`docker-compose.yml`) :
 ```powershell
-docker compose down -v          # repart de zéro (volumes inclus)
-docker compose up --build -d
-docker compose ps               # attendre les 4 conteneurs "healthy" (5-10 min)
+docker compose -f docker-compose.yml up --build -d
+docker compose -f docker-compose.yml ps     # attendre les 4 conteneurs "healthy"
 ```
+
+**Scénario 2** — fragmentation primaire (`docker-compose.scenario2.yml`) :
+```powershell
+docker compose -f docker-compose.yml down -v                  # arrêter le scénario 1
+docker compose -f docker-compose.scenario2.yml up --build -d
+docker compose -f docker-compose.scenario2.yml ps             # attendre "healthy"
+```
+
+**Revenir au scénario 1** :
+```powershell
+docker compose -f docker-compose.scenario2.yml down -v        # arrêter le scénario 2
+docker compose -f docker-compose.yml up --build -d
+```
+
+> Démarrage complet : 5-10 min (le Master démarre en premier, les sites tirent ensuite leur fragment par CTAS).
 
 Connexion type :
 ```powershell
