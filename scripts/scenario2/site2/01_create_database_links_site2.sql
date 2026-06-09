@@ -18,5 +18,5 @@ USING 'BD-MASTER';
 
 -- Lien vers Site 1 (routage croise : lignes qui passent en R1)
 CREATE DATABASE LINK link_site1
-CONNECT TO eshop_link IDENTIFIED BY "LinkPwd123"
+CONNECT TO eshop_site1 IDENTIFIED BY "EshopPassword123"
 USING 'BD-SITE1';
